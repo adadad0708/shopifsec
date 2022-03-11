@@ -33,7 +33,7 @@ class Shopify ():
         self.shipping = shipping
         self.size = 'Click buy for more sizing information.'
         self.file_name = self.name + 'Inventory.csv'
-        self.url = ['https://' + self.name + '.com/collections/', '/products.json?limit=250&page=']
+        self.url = ['https://' + self.name + '.com/collections/', '/products.json?limit=10&page=']
         self.link = self.url[0].split ( 'collections' )[0]
         self.reason = {'"Gift" in product': 0, 'No images': 0, 'Tags empty': 0, 'Women product': 0,
                        'Repeated product': 0, 'Sold out': 0}
@@ -93,15 +93,10 @@ class Shopify ():
                         if not self.process_sizes ( color ): continue
 
                         if not d['body_html']:
-                            details = d['body_html']
-                            print(details)
+                            details = ''
                         else:
-                            details = d['body_html']
-                            #     details = clean_text ( d['body_html'] )
-                            # self.make_body ( details, self.size, self.shipping )
-                            # print ( d['body_html'] )
-                            # print ( self.make_body )
-
+                            details = clean_text ( d['body_html'] )
+                        # self.make_body ( d['body_html'] )
 
                         self.prods.append ( self.prod )
                         self.tot += 1
@@ -210,29 +205,10 @@ class Shopify ():
         self.prod.handle += '-' + gen_clean ( color )
         self.prod.img_pos = []
         self.prod.img_urls = []
-        self.prod.opt_val = []
-        print("dddddddd")
         for img in self.d['images']:
-            print ( img )
-
             if (img['position'] in self.pos[color]):
-
-
-
                 self.prod.img_urls.append ( img['src'] )
                 self.prod.img_pos.append ( len ( self.prod.img_urls ) )
-                print ( img['position'],"dd" )
-                print ( self.pos[color],"ddddd" )
-        for opt in self.d['options'][0]["values"]:
-
-            print ( opt,"opt" )
-            # print ( opt['values'] )
-            # print ( self.pos[color] )
-            # self.prod.opt_val.append ( opt['values'] )
-            # print ( self.prod.opt_val )
-
-
-
 
     def process_sizes(self, color):
         self.avail_sizes = {}
@@ -296,24 +272,24 @@ class Shopify ():
             # print("Size not found for", size)
             return inp
 
-    # def make_body(self, det, size, ship):
-    #     root = ET.Element ( "sections" )
-    #     sec1 = ET.SubElement ( root, "section", id="1" )
-    #     ET.SubElement ( sec1, "sectionTitle" ).text = "Details"
-    #     ET.SubElement ( sec1, "sectionBody" ).text = clean_text ( det )
-    #     sec2 = ET.SubElement ( root, "section", id="2" )
-    #     ET.SubElement ( sec2, "sectionTitle" ).text = "Size &amp; Fit"
-    #     ET.SubElement ( sec2, "sectionBody" ).text = size
-    #     sec3 = ET.SubElement ( root, "section", id="3" )
-    #     ET.SubElement ( sec3, "sectionTitle" ).text = "Shipping &amp; Returns"
-    #     ET.SubElement ( sec3, "sectionBody" ).text = ship
-    #     sizes = ET.SubElement ( root, "sizes" )
-    #     for s, data in self.avail_sizes.items ():
-    #         size = ET.SubElement ( sizes, "size", instock=str ( data[0] ).lower () )
-    #         ET.SubElement ( size, "string" ).text = str ( s )
-    #         ET.SubElement ( size, "variant" ).text = str ( data[1] )
-    #     # print(ET.tostring(root).decode("utf-8"))
-    #     self.prod.body = ET.tostring ( root ).decode ( "utf-8" )
+    def make_body(self, det, size, ship):
+        root = ET.Element ( "div" )
+        sec1 = ET.SubElement ( root, "div", id="1" )
+        ET.SubElement ( sec1, "div" ).text = "Details"
+        ET.SubElement ( sec1, "div" ).text = clean_text ( det )
+        sec2 = ET.SubElement ( root, "div", id="2" )
+        ET.SubElement ( sec2, "div" ).text = "Size &amp; Fit"
+        ET.SubElement ( sec2, "div" ).text = size
+        sec3 = ET.SubElement ( root, "div", id="3" )
+        ET.SubElement ( sec3, "div" ).text = "Shipping &amp; Returns"
+        ET.SubElement ( sec3, "div" ).text = ship
+        sizes = ET.SubElement ( root, "sizes" )
+        for s, data in self.avail_sizes.items ():
+            size = ET.SubElement ( sizes, "size", instock=str ( data[0] ).lower () )
+            ET.SubElement ( size, "span" ).text = str ( s )
+            # ET.SubElement ( size, "variant" ).text = str ( data[1] )
+        # print(ET.tostring(root).decode("utf-8"))
+        self.prod.body = ET.tostring ( root ).decode ( "utf-8" )
 
     def proc_size_li(self, li):
         result = []
@@ -340,13 +316,13 @@ class Shopify ():
     def write_info(self):
         tot = "Total products: " + str ( self.tot ) + "/" + str ( sum ( list ( self.reason.values () ) ) + self.tot )
         time_info = "Total Time: " + str ( round ( time () - self.start, 2 ) ) + 's'
-        # with open ( self.info_path + self.name + '.txt', "a+" ) as f:
-        #     f.writelines (
-        #         [str ( datetime.now ().strftime ( "%d/%m/%Y %H:%M:%S" ) ) + '\n', self.note + '\n', tot + '\n',
-        #          time_info + '\n', str ( self.reason ) + '\n', '\n\n'] )
+        with open ( self.info_path + self.name + '.txt', "a+" ) as f:
+            f.writelines (
+                [str ( datetime.now ().strftime ( "%d/%m/%Y %H:%M:%S" ) ) + '\n', self.note + '\n', tot + '\n',
+                 time_info + '\n', str ( self.reason ) + '\n', '\n\n'] )
 
     def write_csv(self):
-        with open ( self.csv_path+"3" + self.file_name, 'w+' ) as csvfile:
+        with open ( self.csv_path +"2"+ self.file_name, 'w+' ) as csvfile:
             writer = csv.writer ( csvfile )
             writer.writerows ( self.rows )
 
@@ -368,8 +344,7 @@ class Shopify ():
             data = {"smart_collection": {"title": self.dname + '-men:' + n, "rules": [
                 {"column": "vendor", "relation": "contains", "condition": self.dname + "-men"},
                 {"column": "tag", "relation": "equals", "condition": c}], "disjunctive": False,
-                                         "body_html": self.body_html}}
-            print(data.body_html,"data.body_html")
+                                         "body_html": str ( i + 2 )}}
             if imgs: data["smart_collection"]["image"] = {"src": imgs[i + 1], "width": 200, "height": 200}
             a = post ( col_url, data=json.dumps ( data ), headers={'Content-Type': 'application/json'} )
             # print(a.content)

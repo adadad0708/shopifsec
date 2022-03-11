@@ -3,22 +3,20 @@ import json
 
 
 class Product:
-    print ( 'ss' )
-
     def __init__(self, d='', c='', name='', display_name='', url='', industry=''):
         self.industry = industry
         self.collection = ''
         self.handle = ''
         self.title = ''
-        self.body_html = d["body_html"]
+        self.body = d["body_html"]
         self.vendor = ''
         self.type = ''
         self.tags = ''
         self.published = ''
-        self.option1_name = d['options'][0]["name"]
-        self.option1_value =  ''
-        self.option2_name = ' '
-        self.option2_value = ''
+        self.option1_name = 'Title'
+        self.option1_value = 'Default Title'
+        self.option2_name = 'Link'
+        self.link = ''
         self.option3_name = ''
         self.option3_value = ''
         self.sku = ''
@@ -44,19 +42,12 @@ class Product:
         self.cost_item = ''
 
         if d:
-
-            print(d["body_html"],'d["body_html"]')
-
-            # print(d['options'][0]["values"],"d['options'][0]ss")
-            # print(d['options'][1]["values"],"d['options'][0]mm")
-            #
-            # print(d['options'][1],"d['options'][1]")
-
             self.vendor = display_name + '-men'
             # self.collection = display_name+'-men'
             self.title = d['title']
             self.handle = d['handle']
             self.type = d['product_type'].lower ()
+
             var = d['variants'][0]
             self.price = var['price']
             self.weight = var['grams']
@@ -73,7 +64,7 @@ class Product:
 
     def get_first_row(self):
         tags = ', '.join ( self.tags )
-        out = [self.collection, self.handle, self.title, self.body_html, self.vendor, self.type, tags, self.published,
+        out = [self.collection, self.handle, self.title, self.body, self.vendor, self.type, tags, self.published,
                self.option1_name, self.option1_value, self.option2_name, self.link, self.option3_name]
         out += [self.option3_value, self.sku, self.weight, self.inv_tracker, self.policy, self.full_service, self.price,
                 self.cap, self.ship, self.tax, self.barcode, self.img_urls[0], self.img_pos[0]]
@@ -82,34 +73,22 @@ class Product:
                                                                                                         self.variant_tax,
                                                                                                         self.cost_item]
         return [out]
-        print(prod['product']['options'].name)
-        print(out['self.option1_value'])
 
     def get_other_rows(self):
         rows = []
         for i in range ( len ( self.img_urls[1:] ) ):
-            # print ( self.img_urls,"i")
-            # print ( self.option1_value,"iddd")
-
-
             rows.append ( [self.collection, self.handle] + ([''] * 22) + [self.img_urls[i + 1], self.img_pos[i + 1]] )
-            # print ( rows, "rows")
-
         return rows
 
     def get_rows(self):
-
-
         return (self.get_first_row () + self.get_other_rows ())
-        print ( prod['product']['options'].name )
-        print ( out['self.option1_value'] )
 
     def __eq__(self, other):
         return (self.title == other.title and self.handle == other.handle)
 
     def make_product(self, li):
         main = li[0]
-        self.collection, self.handle, self.title, self.body_html, self.vendor, self.type, tags, self.published, self.option1_name, self.option1_value, self.option2_name, self.link, self.option3_name, self.option3_value, self.sku, self.weight, self.inv_tracker, self.policy, self.full_service, self.price, self.cap, self.ship, self.tax, self.barcode = main[
+        self.collection, self.handle, self.title, self.body, self.vendor, self.type, tags, self.published, self.option1_name, self.option1_value, self.option2_name, self.link, self.option3_name, self.option3_value, self.sku, self.weight, self.inv_tracker, self.policy, self.full_service, self.price, self.cap, self.ship, self.tax, self.barcode = main[
                                                                                                                                                                                                                                                                                                                                                           :24]
         self.tags = tags.split ( ',' )
         self.handle = gen_clean ( self.handle )
@@ -128,17 +107,12 @@ class Product:
     def get_json(self, prod_id=None):
         prod = {'product': {}}
         if prod_id:
-            prod['product'] = {"id": prod_id, "title": self.title, "body_html": self.body_html, "vendor": self.vendor,
+            prod['product'] = {"id": prod_id, "title": self.title, "body_html": self.body, "vendor": self.vendor,
                                "product_type": self.type, "tags": self.tags, "handle": self.handle}
         else:
-            prod['product'] = {"title": self.title, "body_html": self.body_html, "vendor": self.vendor,
+            prod['product'] = {"title": self.title, "body_html": self.body, "vendor": self.vendor,
                                "product_type": self.type, "tags": self.tags, "handle": self.handle}
         prod['product']['options'] = [{"name": self.option1_name, "position": 1, "value": self.option1_value}]
-        print("dd")
-        print(prod['product']['options'])
-        print(prod['product']['options'].name)
-
-
         prod['product']['options'] += [{"name": self.option2_name, "position": 2, "value": self.link}]
         # prod['product']['options'] += [{"name":self.option3_name, "position":3, "value":self.option3_value}]
         prod['product']['variants'] = [
